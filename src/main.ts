@@ -1,49 +1,35 @@
-/* eslint-disable prettier/prettier */
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
+
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
-import { RoleSchema } from './auth/schemas/role.schema';
-// import { db } from './auth/schemas';
-// const Role = db.role;
+import { SeederService } from './seeder/seeder.service';
 
 const port = process.env.PORT;
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(port);
-  Logger.log(`Server started running on http://localhost:${port}`, 'Bootstrap');
+function bootstrap() {
+  NestFactory.createApplicationContext(AppModule)
+    .then((appContext) => {
+      const seeder = appContext.get(SeederService);
+
+      return seeder
+        .seed()
+        .then(() => {
+          console.log('Seeding complete');
+        })
+        .catch((error) => {
+          console.log('Seeding failed');
+          throw error;
+        })
+        .finally(() => appContext.close());
+    })
+    .then(() => NestFactory.create(AppModule))
+    .then((app) => {
+      app.listen(port, () => {
+        console.log(`Server started running on http://localhost:${port}`);
+      });
+    })
+    .catch((error) => {
+      throw error;
+    });
 }
 bootstrap();
-
-function initial() {
-  RoleSchema.estimatedDocumentCount((err, count) => {
-    if (!err && count === 0) {
-      new Role({
-        name: "user"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
-        console.log("added 'user' to roles collection");
-      });
-      new Role({
-        name: "moderator"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
-        console.log("added 'moderator' to roles collection");
-      });
-      new Role({
-        name: "admin"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
-        console.log("added 'admin' to roles collection");
-      });
-    }
-  });
-}
-initial();

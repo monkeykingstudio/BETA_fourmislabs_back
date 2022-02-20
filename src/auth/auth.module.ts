@@ -10,12 +10,15 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserSchema } from './schemas/user.schema';
-import { RoleSchema } from './schemas/role.schema';
+import { Role, RoleSchema } from './schemas/role.schema';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema },{ name: 'Role', schema: RoleSchema}]),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: Role.name, schema: RoleSchema },
+    ]),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
