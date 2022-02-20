@@ -12,7 +12,7 @@ import { User } from './interfaces/user.interface';
 export class AuthService {
   constructor(
     @InjectModel('User') private userModel: Model<User>,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
@@ -20,7 +20,11 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new this.userModel({ username, email, password: hashedPassword });
+    const user = new this.userModel({
+      username,
+      email,
+      password: hashedPassword,
+    });
 
     try {
       await user.save();
