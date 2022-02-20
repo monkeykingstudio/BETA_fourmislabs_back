@@ -7,7 +7,9 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
-import { AuthController } from './auth.controller';
+import { AuthController } from './controllers/auth.controller';
+import { UserController } from './controllers/user.controller';
+
 import { AuthService } from './auth.service';
 import { UserSchema } from './schemas/user.schema';
 import { RoleSchema } from './schemas/role.schema';
@@ -15,7 +17,10 @@ import { RoleSchema } from './schemas/role.schema';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema },{ name: 'Role', schema: RoleSchema}]),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: 'Role', schema: RoleSchema}
+    ]),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
@@ -23,7 +28,7 @@ import { RoleSchema } from './schemas/role.schema';
     }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
-  controllers: [AuthController],
+  controllers: [AuthController, UserController],
   exports: [AuthService],
 })
 export class AuthModule {}

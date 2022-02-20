@@ -4,17 +4,15 @@ import {
   Controller,
   Post,
   Get,
-  Res,
   Request,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import express, { Response } from 'express';
 
-import { AuthService } from './auth.service';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { LocalAuthGuard } from './guards/auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthService } from '../auth.service';
+import { AuthCredentialsDto } from '../dto/auth-credentials.dto';
+import { LocalAuthGuard } from '../guards/auth.guard';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {

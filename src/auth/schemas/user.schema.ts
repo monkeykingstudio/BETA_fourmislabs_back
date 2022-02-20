@@ -18,7 +18,7 @@ export class User {
   password: string;
 
   @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }])
-  roles: Role[];
+  roles: [];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
