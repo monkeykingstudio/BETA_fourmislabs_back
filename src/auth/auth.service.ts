@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
@@ -73,9 +73,32 @@ export class AuthService {
   }
 
   async signIn(user: User) {
+    const userRoles: string[] = [];
     const payload = { username: user.username, sub: user._id };
+
+    try {
+      this.userModel.findOne({
+        username: user.username
+      })
+        .populate("roles", "-__v")
+        .exec((err, user: User) => {
+          for (let i = 0; i < user.roles.length; i++) {
+            const role: string =  user.roles[i]['name']
+            userRoles.push("ROLE_" + role.toUpperCase());
+          }
+          console.log('user roles: ', userRoles);
+        })
+    } catch (error) {
+      if (error.code === 404) {
+        throw new NotFoundException('User Not found');
+      }
+      throw error;
+    }
+
     return {
       accessToken: this.jwtService.sign(payload),
+      userId: user._id,
+      email: user.email
     };
   }
 
@@ -96,6 +119,7 @@ export class AuthService {
     return null;
   }
 
+  // Set default role 'user._id' from Roles collection
   async setDefaultRole(user: User): Promise<any>{
     this.roleModel.findOne({ name: "user" },
     (err, role: Role) => {
