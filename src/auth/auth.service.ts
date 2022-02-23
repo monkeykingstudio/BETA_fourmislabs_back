@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { ObjectId } from 'mongodb';
-import { Model } from 'mongoose';
 
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+
 import { Role } from './interfaces/role.interface';
 import { User } from './interfaces/user.interface';
 
@@ -19,6 +19,7 @@ export class AuthService {
     @InjectModel('Role') private RoleModel: Model<Role>,
     private jwtService: JwtService,
   ) {
+    // Initialize mongoDb Roles collection
     this.RoleModel.estimatedDocumentCount((err, count) => {
       if (!err && count === 0) {
         new this.RoleModel({
@@ -78,7 +79,8 @@ export class AuthService {
     const userRoles: string[] = [];
     const payload = {
         username: user.username,
-        sub: user._id
+        sub: user._id,
+        roles: user.roles
     };
     try {
         const data: User = await this.UserModel.findOne({
@@ -102,47 +104,10 @@ export class AuthService {
         accessToken: this.jwtService.sign(payload),
         userId: user._id,
         email: user.email,
+        username: user.username,
         roles: userRoles
     };
-}
-
-  // async signIn(user: User) {
-  //   const payload = { username: user.username, sub: user._id };
-  //   try {
-  //     const newUser = await this.UserModel.findOne({
-  //       username: user.username
-  //     })
-  //     .populate("roles", "name")
-  //     .exec((err, user: User) => {
-  //       console.log('user roles: ', user.roles);
-  //         const test = user.roles.map((e)=> {
-  //           console.log('e',e);
-  //           return e;
-  //         })
-  //         console.log('test', test[0]['name']);
-  //         return {
-  //           accessToken: this.jwtService.sign(payload),
-  //           userId: user._id,
-  //           email: user.email,
-  //           roles: test[0]['name']
-  //         };
-  //       })
-  //       console.log('new user', newUser);
-  //       // .exec((err, user: User) => {
-  //       //   for (let i = 0; i < user.roles.length; i++) {
-  //       //     const role: string =  user.roles[i]['name']
-  //       //     this.userRoles.push("ROLE_" + role.toUpperCase());
-  //       //   }
-  //       //   console.log('user roles: ', this.userRoles);
-  //       //   // return userRoles;
-  //       // });
-  //   } catch (error) {
-  //     if (error.code === 404) {
-  //       throw new NotFoundException('User Not found');
-  //     }
-  //     throw error;
-  //   }
-  // }
+  }
 
   // Validate User by comparing req pass and database password with bcrypt
   async validateUser(username: string, pass: string): Promise<User> {
@@ -162,21 +127,20 @@ export class AuthService {
   }
 
   // Set default role 'user._id' from Roles collection
-  async setDefaultRole(user: User): Promise<any>{
+  setDefaultRole(user: User): any{
     this.RoleModel.findOne({ name: "user" },
     (err, role: Role) => {
       if (!user) {
-        console.log(err.message);
         return;
       }
       user.roles = role._id;
-      user.save((err, user) => {
-        if (err) {
-          console.log(err.message);
-          return;
-        }
-        return user;
-      });
+        user.save((err, user) => {
+          if (err) {
+            console.log(err.message);
+            return;
+          }
+          return user;
+        });
     });
   }
 }

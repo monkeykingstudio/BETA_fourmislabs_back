@@ -8,7 +8,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
 import { AuthController } from './controllers/auth.controller';
-import { UserController } from './controllers/user.controller';
 
 import { AuthService } from './auth.service';
 import { UserSchema } from './schemas/user.schema';
@@ -28,7 +27,7 @@ import { RoleSchema } from './schemas/role.schema';
     }),
   ],
   providers: [AuthService, LocalStrategy, JwtStrategy],
-  controllers: [AuthController, UserController],
+  controllers: [AuthController],
   exports: [AuthService],
 })
 export class AuthModule {}

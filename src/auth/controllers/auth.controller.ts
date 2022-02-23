@@ -5,8 +5,10 @@ import {
   Post,
   Get,
   Request,
+  Response,
   UseGuards,
   ValidationPipe,
+  HttpStatus,
 } from '@nestjs/common';
 
 import { AuthService } from '../auth.service';
@@ -21,14 +23,17 @@ export class AuthController {
   @Post('signup')
   async signUp(
     @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
+    @Response() res: any
   ): Promise<void> {
-    return await this.authService.signUp(authCredentialsDto);
+    const register = await this.authService.signUp(authCredentialsDto);
+    return res.status(HttpStatus.OK).json(register);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('signin')
   async signIn(@Request() req) {
-    return this.authService.signIn(req.user);
+    console.log('signin', req.user.username)
+    return await this.authService.signIn(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
