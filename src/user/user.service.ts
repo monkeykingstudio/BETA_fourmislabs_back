@@ -21,14 +21,5 @@ export class UserService {
       throw error;
     }
   }
-  async isModerator(): Promise<any>{
-    return console.log('moderator');
-  }
-
-  async isAdmin(): Promise<any>{
-    return 'admin';
-  }
 }
 
-
-//isAdmin()

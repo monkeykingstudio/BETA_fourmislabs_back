@@ -51,15 +51,15 @@ export class AuthService {
   }
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
-    const { username, password, email } = authCredentialsDto;
+    const { username, password, email, newsletter } = authCredentialsDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new this.UserModel({
       username,
       email,
       password: hashedPassword,
+      newsletter: newsletter
     });
-
     try {
       user.save((err, user) => {
         if (err) {
@@ -76,12 +76,15 @@ export class AuthService {
   }
 
   async signIn(user: User) {
+
     const userRoles: string[] = [];
     const payload = {
         username: user.username,
         sub: user._id,
-        roles: user.roles
+        roles: user.roles,
+        newsletter: user.newsletter
     };
+
     try {
         const data: User = await this.UserModel.findOne({
             username: user.username
@@ -92,8 +95,8 @@ export class AuthService {
             const role: string = data.roles[i]['name']
             userRoles.push("ROLE_" + role.toUpperCase());
         }
-
         console.log('user roles: ', userRoles);
+
     } catch (error) {
         if (error.code === 404) {
             throw new NotFoundException('User Not found');
@@ -105,7 +108,8 @@ export class AuthService {
         userId: user._id,
         email: user.email,
         username: user.username,
-        roles: userRoles
+        roles: userRoles,
+        newsletter: payload.newsletter
     };
   }
 
