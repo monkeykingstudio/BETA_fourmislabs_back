@@ -8,7 +8,9 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { Role } from './interfaces/role.interface';
-import { User } from './interfaces/user.interface';
+import { User } from './interfaces/auth.interface';
+
+import { MailService } from './../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +20,7 @@ export class AuthService {
     @InjectModel('User') private UserModel: Model<User>,
     @InjectModel('Role') private RoleModel: Model<Role>,
     private jwtService: JwtService,
+    private mailService: MailService
   ) {
     // Initialize mongoDb Roles collection
     this.RoleModel.estimatedDocumentCount((err, count) => {
@@ -54,6 +57,7 @@ export class AuthService {
     const { username, password, email, newsletter } = authCredentialsDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const activationToken = this.jwtService.sign(authCredentialsDto);
     const user = new this.UserModel({
       username,
       email,
@@ -73,6 +77,8 @@ export class AuthService {
       }
       throw error;
     }
+    console.log('hacktivationtoken', activationToken);
+    await this.mailService.sendUserConfirmation(user, activationToken);
   }
 
   async signIn(user: User) {

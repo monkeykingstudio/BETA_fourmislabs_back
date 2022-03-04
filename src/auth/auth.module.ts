@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
@@ -13,13 +12,15 @@ import { AuthService } from './auth.service';
 import { UserSchema } from './schemas/user.schema';
 import { RoleSchema } from './schemas/role.schema';
 
+import { MailModule } from '../mail/mail.module';
+
 @Module({
   imports: [
-    ConfigModule.forRoot(),
     MongooseModule.forFeature([
       { name: 'User', schema: UserSchema },
       { name: 'Role', schema: RoleSchema}
     ]),
+    MailModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,

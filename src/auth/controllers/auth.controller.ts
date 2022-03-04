@@ -31,13 +31,13 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('signin')
-  async signIn(@Request() req) {
+  async signIn(@Request() req: any) {
     return await this.authService.signIn(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getMe(@Request() req) {
+  getMe(@Request() req: any) {
     return req.user;
   }
 }
