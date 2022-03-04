@@ -20,7 +20,7 @@ import { ConfigService } from '@nestjs/config';
           },
         },
         defaults: {
-          from: `"No Reply" <${config.get('MAIL_FROM')}>`,
+          from: `"Fourmislabs | No Reply" <${config.get('MAIL_FROM')}>`,
         },
         preview: true,
         template: {
