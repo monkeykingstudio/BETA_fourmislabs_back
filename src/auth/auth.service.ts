@@ -8,13 +8,12 @@ import {
 } from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-
 import {AuthCredentialsDto} from './dto/auth-credentials.dto';
 import {Model} from 'mongoose';
 import {InjectModel} from '@nestjs/mongoose';
-
 import {Role} from './interfaces/role.interface';
-import {User} from './interfaces/user.interface';
+import {User} from './interfaces/auth.interface';
+import {MailService} from './../mail/mail.service';
 import {UserRequest} from './interface/user';
 
 @Injectable()
@@ -25,6 +24,7 @@ export class AuthService {
         @InjectModel('User') private UserModel: Model<User>,
         @InjectModel('Role') private RoleModel: Model<Role>,
         private jwtService: JwtService,
+        private mailService: MailService,
     ) {
         // Initialize mongoDb Roles collection
         this.RoleModel.estimatedDocumentCount((err, count) => {
@@ -59,20 +59,30 @@ export class AuthService {
 
     async signUp(authCredentialsDto: AuthCredentialsDto): Promise<any> {
         try {
-            
-            const emailExists = await this.UserModel.exists({ email: authCredentialsDto.email }); 
+            const emailExists = await this.UserModel.exists({
+                email: authCredentialsDto.email,
+            });
             if (emailExists) {
-                return new HttpException("email already exist", HttpStatus.BAD_REQUEST);
+                return new HttpException(
+                    'email already exist',
+                    HttpStatus.BAD_REQUEST,
+                );
             } else {
-                const userExists = await this.UserModel.exists({ username: authCredentialsDto.username });
-                if(userExists) {
-                    return new HttpException("username already exist", HttpStatus.BAD_REQUEST);
+                const userExists = await this.UserModel.exists({
+                    username: authCredentialsDto.username,
+                });
+                if (userExists) {
+                    return new HttpException(
+                        'username already exist',
+                        HttpStatus.BAD_REQUEST,
+                    );
                 }
             }
 
             const {username, password, email, newsletter} = authCredentialsDto;
 
             const hashedPassword = await bcrypt.hash(password, 10);
+            const activationToken = this.jwtService.sign(authCredentialsDto);
 
             const user = new this.UserModel({
                 username,
@@ -82,12 +92,17 @@ export class AuthService {
             });
             user.save((err, user) => {
                 if (err) {
-                    return new HttpException(err.message, HttpStatus.BAD_REQUEST);
+                    return new HttpException(
+                        err.message,
+                        HttpStatus.BAD_REQUEST,
+                    );
                 } else {
                     this.setDefaultRole(user);
                 }
-                
             });
+            console.log('hacktivationtoken', activationToken);
+            await this.mailService.sendUserConfirmation(user, activationToken);
+
             return user;
         } catch (error) {
             if (error.code === 11000) {
@@ -173,5 +188,4 @@ export class AuthService {
 
         return userRoles;
     }
-
 }
