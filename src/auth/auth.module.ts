@@ -1,5 +1,5 @@
+/* eslint-disable prettier/prettier */
 import {Module} from '@nestjs/common';
-import {ConfigModule} from '@nestjs/config';
 import {JwtModule} from '@nestjs/jwt';
 import {MongooseModule} from '@nestjs/mongoose';
 import {PassportModule} from '@nestjs/passport';
@@ -23,7 +23,7 @@ import {MailModule} from '../mail/mail.module';
         PassportModule,
         JwtModule.register({
             secret: process.env.JWT_SECRET,
-            signOptions: {expiresIn: '60s'},
+            signOptions: {expiresIn: '1h'},
         }),
     ],
     providers: [AuthService, LocalStrategy, JwtStrategy],

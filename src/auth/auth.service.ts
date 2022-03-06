@@ -100,7 +100,6 @@ export class AuthService {
                     this.setDefaultRole(user);
                 }
             });
-            console.log('hacktivationtoken', activationToken);
             await this.mailService.sendUserConfirmation(user, activationToken);
 
             return user;

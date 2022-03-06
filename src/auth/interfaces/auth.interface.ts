@@ -7,4 +7,5 @@ export interface User extends Document {
     readonly password: string;
     roles: [];
     newsletter: boolean;
+    isVerified: boolean;
 }
