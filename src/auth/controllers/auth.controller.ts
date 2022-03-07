@@ -33,8 +33,6 @@ export class AuthController {
         @Res() res: Response,
     ): Promise<any> {
         const register = await this.authService.signUp(authCredentialsDto);
-        console.log(register);
-
         return res.status(HttpStatus.CREATED).send(register);
     }
 

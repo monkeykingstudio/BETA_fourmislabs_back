@@ -21,6 +21,9 @@ export class User {
 
     @Prop([{type: mongoose.Schema.Types.ObjectId, ref: 'Role'}])
     roles: [];
+
+    @Prop({default: false})
+    isVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
