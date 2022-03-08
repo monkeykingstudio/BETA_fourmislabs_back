@@ -26,8 +26,5 @@ export class GoogleAuthController {
     res.status(200).send(responseHTML);
     // res.redirect('http://localhost:4200/login/succes/');
     return this.authService.googleSignup(req);
-
-
-
   }
 }
