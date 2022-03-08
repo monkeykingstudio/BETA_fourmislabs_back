@@ -11,7 +11,6 @@ export class GoogleAuthController {
   @Get()
   @UseGuards(GoogleOauthGuard)
   async googleAuth(@Req() _req: Request) {
-    console.log('test login');
     // Guard redirects
   }
 
@@ -26,9 +25,6 @@ export class GoogleAuthController {
 
     res.status(200).send(responseHTML);
     // res.redirect('http://localhost:4200/login/succes/');
-    return this.authService.googleLogin(req);
-
-
-
+    return this.authService.googleSignup(req);
   }
 }
