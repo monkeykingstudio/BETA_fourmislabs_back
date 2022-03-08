@@ -14,145 +14,166 @@ import { MailService } from './../mail/mail.service';
 
 @Injectable()
 export class AuthService {
-  userRoles: string[] = [];
+    userRoles: string[] = [];
 
-  constructor(
+    constructor(
     @InjectModel('User') private UserModel: Model<User>,
     @InjectModel('Role') private RoleModel: Model<Role>,
     private jwtService: JwtService,
     private mailService: MailService
-  ) {
-    // Initialize mongoDb Roles collection
-    this.RoleModel.estimatedDocumentCount((err, count) => {
-      if (!err && count === 0) {
-        new this.RoleModel({
-          name: 'user',
-        }).save((err) => {
-          if (err) {
-            console.log('error', err);
-          }
-          console.log("added 'user' to roles collection");
+    ) {
+        // Initialize mongoDb Roles collection
+        this.RoleModel.estimatedDocumentCount((err, count) => {
+            if (!err && count === 0) {
+            new this.RoleModel({
+                name: 'user',
+            }).save((err) => {
+                if (err) {
+                console.log('error', err);
+                }
+                console.log("added 'user' to roles collection");
+            });
+            new this.RoleModel({
+                name: 'moderator',
+            }).save((err) => {
+                if (err) {
+                console.log('error', err);
+                }
+                console.log("added 'moderator' to roles collection");
+            });
+            new this.RoleModel({
+                name: 'admin',
+            }).save((err) => {
+                if (err) {
+                console.log('error', err);
+                }
+                console.log("added 'admin' to roles collection");
+            });
+            }
         });
-        new this.RoleModel({
-          name: 'moderator',
-        }).save((err) => {
-          if (err) {
-            console.log('error', err);
-          }
-          console.log("added 'moderator' to roles collection");
-        });
-        new this.RoleModel({
-          name: 'admin',
-        }).save((err) => {
-          if (err) {
-            console.log('error', err);
-          }
-          console.log("added 'admin' to roles collection");
-        });
-      }
-    });
-  }
+    }
 
-  async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
+    googleLogin(req: any) {
+        console.log('req.query.code :', req.query.code);
+        if (!req.user) {
+            return 'No user from google'
+        }
+
+        const user = {
+            id: req.user.providerId,
+            username: req.user.name,
+            email: req.user.username
+        }
+
+        console.log('user to save: ', user)
+
+
+        return {
+            message: 'User information from google',
+            user: req.user
+        }
+    }
+
+    async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const { username, password, email, newsletter } = authCredentialsDto;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const activationToken = this.jwtService.sign(authCredentialsDto);
     const user = new this.UserModel({
-      username,
-      email,
-      password: hashedPassword,
-      newsletter: newsletter
+        username,
+        email,
+        password: hashedPassword,
+        newsletter: newsletter
     });
     try {
-      user.save((err, user) => {
+        user.save((err, user) => {
         if (err) {
-          console.log(err.message);
+            console.log(err.message);
         }
         this.setDefaultRole(user);
-      });
+        });
     } catch (error) {
-      if (error.code === 11000) {
+        if (error.code === 11000) {
         throw new ConflictException('User already exists');
-      }
-      throw error;
-    }
-    console.log('hacktivationtoken', activationToken);
-    await this.mailService.sendUserConfirmation(user, activationToken);
-  }
-
-  async signIn(user: User) {
-
-    const userRoles: string[] = [];
-    const payload = {
-        username: user.username,
-        sub: user._id,
-        roles: user.roles,
-        newsletter: user.newsletter
-    };
-
-    try {
-        const data: User = await this.UserModel.findOne({
-            username: user.username
-        })
-        .populate("roles", "name")
-        .exec();
-        for (let i = 0; i < data.roles.length; i++) {
-            const role: string = data.roles[i]['name']
-            userRoles.push("ROLE_" + role.toUpperCase());
-        }
-        console.log('user roles: ', userRoles);
-
-    } catch (error) {
-        if (error.code === 404) {
-            throw new NotFoundException('User Not found');
         }
         throw error;
     }
-    return {
-        accessToken: this.jwtService.sign(payload),
-        userId: user._id,
-        email: user.email,
-        username: user.username,
-        roles: userRoles,
-        newsletter: payload.newsletter
-    };
-  }
+    await this.mailService.sendUserConfirmation(user, activationToken);
+    }
 
-  // Validate User by comparing req pass and database password with bcrypt
-  async validateUser(username: string, pass: string): Promise<User> {
+    async signIn(user: User) {
+        const userRoles: string[] = [];
+        const payload = {
+            username: user.username,
+            sub: user._id,
+            roles: user.roles,
+            newsletter: user.newsletter,
+            isVerified: user.isVerified
+        };
+
+        try {
+            const data: User = await this.UserModel.findOne({
+                username: user.username
+            })
+            .populate("roles", "name")
+            .exec();
+            for (let i = 0; i < data.roles.length; i++) {
+                const role: string = data.roles[i]['name']
+                userRoles.push("ROLE_" + role.toUpperCase());
+            }
+            console.log('user roles: ', userRoles);
+
+        } catch (error) {
+            if (error.code === 404) {
+                throw new NotFoundException('User Not found');
+            }
+            throw error;
+        }
+        return {
+            accessToken: this.jwtService.sign(payload),
+            userId: user._id,
+            email: user.email,
+            username: user.username,
+            roles: userRoles,
+            newsletter: payload.newsletter,
+            isVerified: payload.isVerified
+        };
+    }
+
+    // Validate User by comparing req pass and database password with bcrypt
+    async validateUser(username: string, pass: string): Promise<User> {
     const user = await this.UserModel.findOne({ username });
 
     if (!user) {
-      return null;
+        return null;
     }
 
     const valid = await bcrypt.compare(pass, user.password);
 
     if (valid) {
-      return user;
+        return user;
     }
 
     return null;
-  }
+    }
 
-  // Set default role 'user._id' from Roles collection
-  setDefaultRole(user: User): any{
+    // Set default role 'user._id' from Roles collection
+    setDefaultRole(user: User): any{
     this.RoleModel.findOne({ name: "user" },
     (err, role: Role) => {
-      if (!user) {
+        if (!user) {
         return;
-      }
-      user.roles = role._id;
+        }
+        user.roles = role._id;
         user.save((err, user) => {
-          if (err) {
+            if (err) {
             console.log(err.message);
             return;
-          }
-          return user;
+            }
+            return user;
         });
     });
-  }
+    }
 
     async getRoles(username: string): Promise<string[]> {
         const userRoles: string[] = [];

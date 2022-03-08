@@ -7,6 +7,9 @@ import {AppController} from './app.controller';
 import {AppService} from './app.service';
 import {AuthModule} from './auth/auth.module';
 import {UserModule} from './user/user.module';
+import { GoogleAuthController } from './google-auth/google-auth.controller';
+import { GoogleAuthService } from './google-auth/google-auth.service';
+import { GoogleAuthModule } from './google-auth/google-auth.module';
 
 @Module({
     imports: [
@@ -16,8 +19,9 @@ import {UserModule} from './user/user.module';
         MongooseModule.forRoot(process.env.MONGO_URI, {}),
         AuthModule,
         UserModule,
+        GoogleAuthModule,
     ],
-    controllers: [AppController],
-    providers: [AppService],
+    controllers: [AppController, GoogleAuthController],
+    providers: [AppService, GoogleAuthService],
 })
 export class AppModule {}
