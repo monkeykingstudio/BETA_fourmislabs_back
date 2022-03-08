@@ -53,19 +53,33 @@ export class AuthService {
         });
     }
 
-    googleLogin(req: any) {
-        console.log('req.query.code :', req.query.code);
+    googleSignup(req: any) {
         if (!req.user) {
             return 'No user from google'
         }
 
-        const user = {
-            id: req.user.providerId,
+        const user = new this.UserModel({
+            providerId: req.user.providerId,
+            provider: req.user.provider,
             username: req.user.name,
-            email: req.user.username
-        }
+            email: req.user.username,
+            newsletter: true,
+        });
 
-        console.log('user to save: ', user)
+        try {
+            user.save((err, user) => {
+            if (err) {
+                console.log(err.message);
+            }
+            this.setDefaultRole(user);
+            });
+        } catch (error) {
+            if (error.code === 11000) {
+                console.log('User already exists');
+            throw new ConflictException('User already exists');
+            }
+            throw error;
+        }
 
 
         return {
