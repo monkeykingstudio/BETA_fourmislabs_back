@@ -21,9 +21,13 @@ import {MailModule} from '../mail/mail.module';
         ]),
         MailModule,
         PassportModule,
-        JwtModule.register({
-            secret: process.env.JWT_SECRET,
-            signOptions: {expiresIn: '1h'},
+        JwtModule.registerAsync({
+            useFactory: async () => {
+                return {
+                    secret: process.env.JWT_SECRET,
+                    signOptions: {expiresIn: '1h'},
+                }
+            }
         }),
     ],
     providers: [AuthService, LocalStrategy, JwtStrategy],
