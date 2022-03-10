@@ -21,19 +21,16 @@ import {Response} from 'express';
 export class AuthController {
     constructor(private authService: AuthService) {}
 
-    @Get()
-    findAll(@Res({passthrough: true}) res: Response) {
-        res.status(HttpStatus.OK);
-        return [];
-    }
-
     @Post('signup')
     async signUp(
         @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
         @Res() res: Response,
     ): Promise<any> {
         const register = await this.authService.signUp(authCredentialsDto);
-        return res.status(HttpStatus.CREATED).send(register);
+        // return res.status(HttpStatus.CREATED).send(register);
+        return res.status(HttpStatus.CREATED).send(
+        register
+        );
     }
 
     @UseGuards(LocalAuthGuard)

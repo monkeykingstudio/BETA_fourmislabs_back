@@ -10,3 +10,13 @@ export interface User extends Document {
     providerId?: string;
     provider?: string;
 }
+
+export interface UserRequest {
+    accessToken: string;
+    userId: string;
+    email: string;
+    username: string;
+    roles: string[];
+    newsletter: boolean;
+    isVerified: boolean;
+}
